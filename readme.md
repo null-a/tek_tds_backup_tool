@@ -42,8 +42,8 @@ my TDS 540A.
 
 ## AR488 Setup
 
-The Arduino should to be running the AR488 firmware and connected to
-the GPIB bus of the oscilloscope.
+The Arduino should be running the AR488 firmware and connected to the
+GPIB bus of the oscilloscope.
 
 IMPORTANT: I suspect that (in my particular case) I only had this
 working reliably (on an Arduino Diecimila) after I disabled the use of

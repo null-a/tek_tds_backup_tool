@@ -3,16 +3,6 @@
 import argparse
 import serial
 
-"""
-Notes:
-
-I've commented out `#define USE_INTERRUPTS` in the AV488 project
-(`AR488_Config.h`) when running on my Arduino Diecimila. This seems to
-improve reliability to the point where things are useable, but I'm not
-100% sure about the necessity of this.
-
-"""
-
 VERBOSE = True
 
 def log(str):

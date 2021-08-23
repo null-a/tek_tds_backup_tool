@@ -117,19 +117,48 @@ def main(offset, length, filename):
     ser.close()
 
 if __name__ == '__main__':
+
     # The Dallas DS1650Y is a 512k x 8 device.
     # https://www.elnec.com/en/device/Dallas/DS1650Y/
     #
-    # But the schematic says "RAM_128kX8" for component U1108, perhaps
-    #not all of this is used?
+    # From the schematic, I think this can be read at 0x4080000. This
+    # is mostly mirrored at 0x4000000, but there the first 16 bytes
+    # are masked by the RTC?
 
-    main(0x4000000, 512 * 1024, './nvram.bin')
+    main(0x4080000, 512 * 1024, './nvram.bin')
 
-    # The Intel 27010 EPROM is a 128k x 8 device?
+    # RTC / watchdog
+    # https://www.futurlec.com/Datasheet/Dallas/DS1286.pdf
+
+    # From the schematic, it looks like the first 16 bytes of this can
+    # be accessed at 0x4000000. The last two of these are user
+    # regsiters, and could potentially be used by the scope, though it
+    # seems unlikely?
+
+    #main(0x4000000, 16, './rtc.bin')
+
+    # Boot ROM
+
+    # The schematic mentions an Intel 27010 EPROM, which is a 128k x 8
+    # device?
     # https://www.elnec.com/en/device/Intel/27010/
 
-    #main(0x0000000, 256 * 1024, './kernel_rom.bin')
+    # However, the schematic shows enough lines to address 256k * 8,
+    # which we might have. The address mapping is done with a custom
+    # IC, so this can't be read from the schematic.
 
-    # The flash ROM appears to be 12 x N28F010
-    # https://www.elnec.com/en/device/Intel/N28F010+%5BPLCC32%5D/
-    # Each of these is 128k x 8
+    #main(0x0000000, 256 * 1024, './boot_rom.bin')
+
+    # The flash ROM in the device appears to be 12 x N28F020
+    # https://www.elnec.com/en/device/Intel/N28F020+%5BPLCC32%5D/
+    # Each of these is 256k x 8
+    # (Though the schematic mentions 28F010.)
+
+    # Aside, unlike the other memories mention here, these put 32 bits
+    # onto the data bus, and as a result don't get to see the first
+    # two address lines, A0 & A1.
+
+    # It seems to me that there is 3 MBytes of flash ROM on the CPU
+    # board, accessible at 0x1000000.
+
+    # main(0x1000000, 3 * 1024 * 1024, './flash_rom.bin')

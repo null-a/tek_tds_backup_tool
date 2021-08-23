@@ -81,21 +81,28 @@ def gpib_read(ser, addr, length):
         log('attempting read addr={}, length={}'.format(addr, length))
         ser.write(cmd + b'\n')
         ser.write(b'++read eoi\n')
-        data = ser.read(length + 5)
-        if len(data) == length + 5:
-            log('successful read extra={}'.format(pp(data[0:5])))
+        # We receive an extra 5 bytes before the data. The first two
+        # bytes are '+=', then there's a checksum, then the length of
+        # the data to receive.
+        header = ser.read(5)
+        assert header[0:2] == b'+='
+        expected_chksum = header[2]
+        expected_length = (header[3] << 8) | header[4]
+        assert expected_length == length
+        data = ser.read(length)
+        if len(data) == length:
+            log('successful read')
             # Send ACK (just +, but need to escape)
             ser.write(b'\x1b+\n')
-            chksum = data[1] + data[3] + data[4]
-            for b in data[5:]:
+            chksum = header[1] + header[3] + header[4]
+            for b in data:
                 chksum += b
             chksum = chksum & 0xff
-            log('check sum(?) = {:02X}'.format(chksum))
-            return data[5:]
+            #log('expected_chksum={}, chksum={}'.format(expected_chksum, chksum))
+            assert expected_chksum == chksum
+            return data
         else:
             log('error: only received {} bytes'.format(len(data)))
-            if len(data) <= 5:
-                log(data)
 
 CHUNK_SIZE = 1024
 

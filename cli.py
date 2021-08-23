@@ -29,7 +29,7 @@ def escape(chars):
         if c in CTRL_CHARS:
             out.append(27)
         out.append(c)
-    return out
+    return bytes(out)
 
 def read_cmd(addr, length):
     out = [
@@ -54,7 +54,7 @@ def read_cmd(addr, length):
         if not i == 1:
             checksum += out[i]
     out[1] = checksum & 0xff
-    return bytes(escape(out))
+    return escape(bytes(out))
 
 def pp(bs):
     return ' '.join('{:02x}'.format(b) for b in bs)
@@ -94,8 +94,8 @@ def gpib_read(ser, addr, length):
         data = ser.read(length)
         if len(data) == length:
             log('successful read')
-            # Send ACK (just +, but need to escape)
-            ser.write(b'\x1b+\n')
+            # Send ACK
+            ser.write(escape(b'+') + b'\n')
             chksum = header[1] + header[3] + header[4]
             for b in data:
                 chksum += b

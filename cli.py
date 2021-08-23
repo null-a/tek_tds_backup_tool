@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 
-import time
+import argparse
 import serial
 
 """
@@ -108,12 +108,13 @@ def gpib_read(ser, addr, length):
 
 CHUNK_SIZE = 1024
 
-def main(offset, length, filename):
-
+def main(device, offset, length, filename):
+    assert offset >= 0
+    assert length >= 0
     assert length % CHUNK_SIZE == 0
     num_chunks = length // CHUNK_SIZE
 
-    ser = serial.Serial('/dev/tty.usbserial-A70061Un', 115200, timeout=1)
+    ser = serial.Serial(device, 115200, timeout=1)
     gpib_init(ser)
     ser.timeout = 10
 
@@ -125,49 +126,15 @@ def main(offset, length, filename):
 
     ser.close()
 
+# Allow hex literals to be given as command line arguments.
+def int_literal(x):
+    return int(x, 0)
+
 if __name__ == '__main__':
-
-    # The Dallas DS1650Y is a 512k x 8 device.
-    # https://www.elnec.com/en/device/Dallas/DS1650Y/
-    #
-    # From the schematic, I think this can be read at 0x4080000. This
-    # is mostly mirrored at 0x4000000, but there the first 16 bytes
-    # are masked by the RTC?
-
-    main(0x4080000, 512 * 1024, './nvram.bin')
-
-    # RTC / watchdog
-    # https://www.futurlec.com/Datasheet/Dallas/DS1286.pdf
-
-    # From the schematic, it looks like the first 16 bytes of this can
-    # be accessed at 0x4000000. The last two of these are user
-    # regsiters, and could potentially be used by the scope, though it
-    # seems unlikely?
-
-    #main(0x4000000, 16, './rtc.bin')
-
-    # Boot ROM
-
-    # The schematic mentions an Intel 27010 EPROM, which is a 128k x 8
-    # device?
-    # https://www.elnec.com/en/device/Intel/27010/
-
-    # However, the schematic shows enough lines to address 256k * 8,
-    # which we might have. The address mapping is done with a custom
-    # IC, so this can't be read from the schematic.
-
-    #main(0x0000000, 256 * 1024, './boot_rom.bin')
-
-    # The flash ROM in the device appears to be 12 x N28F020
-    # https://www.elnec.com/en/device/Intel/N28F020+%5BPLCC32%5D/
-    # Each of these is 256k x 8
-    # (Though the schematic mentions 28F010.)
-
-    # Aside, unlike the other memories mention here, these put 32 bits
-    # onto the data bus, and as a result don't get to see the first
-    # two address lines, A0 & A1.
-
-    # It seems to me that there is 3 MBytes of flash ROM on the CPU
-    # board, accessible at 0x1000000.
-
-    # main(0x1000000, 3 * 1024 * 1024, './flash_rom.bin')
+    parser = argparse.ArgumentParser()
+    parser.add_argument('device', help='The serial port on which the AR488 is available.')
+    parser.add_argument('offset', type=int_literal, help='The address from which to start reading data.')
+    parser.add_argument('length', type=int_literal, help='The number of bytes to read.')
+    parser.add_argument('filename', help='The name of the output file.')
+    args = parser.parse_args()
+    main(args.device, args.offset, args.length, args.filename)

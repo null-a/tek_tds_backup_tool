@@ -1,3 +1,5 @@
+#!/bin/bash
+
 # Tek TDS Backup Tool
 # Copyright (C) 2021  Paul Horsfall
 
@@ -14,7 +16,6 @@
 # You should have received a copy of the GNU General Public License
 # along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
-#!/bin/bash
 set -e
 if [ $# -eq 0 ]; then
  echo "Usage" $0 "<serial_device>"
